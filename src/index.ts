@@ -9,7 +9,12 @@ import {
 } from '@jupyterlab/notebook';
 import { Cell } from '@jupyterlab/cells';
 
-import { freezeCellModel, isFrozen, thawCellModel } from './freeze';
+import {
+  freezeCellModel,
+  isFrozen,
+  moveDisplacesFrozenCell,
+  thawCellModel
+} from './freeze';
 
 /**
  * CSS class added to a frozen (read-only) cell so it can be visually dimmed.
@@ -21,7 +26,7 @@ const FROZEN_CLASS = 'jp-mod-frozen';
  * A JupyterLab extension that automatically turns a notebook cell read-only
  * once it has been executed.
  *
- * Three behaviours:
+ * Four behaviours:
  *
  *  1. When a cell finishes executing, it is frozen (`editable: false`,
  *     `deletable: false`). This persists in the notebook.
@@ -33,6 +38,9 @@ const FROZEN_CLASS = 'jp-mod-frozen';
  *
  *  3. Frozen cells are dimmed via the `jp-mod-frozen` class, kept in sync with
  *     the `editable` metadata (the single source of truth).
+ *
+ *  4. Frozen cells are pinned in place: any reorder (move command or
+ *     drag-and-drop) that would displace a frozen cell is blocked.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-auto-cell-freeze:plugin',
@@ -89,6 +97,25 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
         syncAllCells();
         notebook.modelContentChanged.connect(syncAllCells);
+
+        // 4. Pin frozen cells in place. All reordering (move commands and
+        //    drag-and-drop) funnels through `Notebook.moveCell`, which has no
+        //    metadata gate. Override it to no-op when the move would displace a
+        //    frozen cell, otherwise delegate to the original (which keeps the
+        //    selection/active-cell bookkeeping and performs the actual move).
+        const originalMoveCell = notebook.moveCell.bind(notebook);
+        notebook.moveCell = (from: number, to: number, n = 1): void => {
+          const cells = notebook.model?.cells;
+          if (
+            cells &&
+            moveDisplacesFrozenCell(cells.length, from, to, n, i =>
+              isFrozen(cells.get(i))
+            )
+          ) {
+            return;
+          }
+          originalMoveCell(from, to, n);
+        };
       });
     });
   }

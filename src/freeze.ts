@@ -34,3 +34,30 @@ export function thawCellModel(model: ICellModel): void {
 export function isFrozen(model: ICellModel): boolean {
   return model.getMetadata(EDITABLE) === false;
 }
+
+/**
+ * Whether moving `n` cells from index `from` to `to` would change the position
+ * of a frozen cell — either the moved block itself or a cell shifted to make
+ * room. Used to pin frozen cells in place.
+ *
+ * The move shifts every cell between the source block and the destination, so
+ * the touched span is `[min(from, boundedTo), max(from + n - 1, boundedTo)]`
+ * where `boundedTo` mirrors the clamping done by `Notebook.moveCell`.
+ */
+export function moveDisplacesFrozenCell(
+  cellCount: number,
+  from: number,
+  to: number,
+  n: number,
+  isFrozenAt: (index: number) => boolean
+): boolean {
+  const boundedTo = Math.min(cellCount - 1, Math.max(0, to));
+  const lo = Math.min(from, boundedTo);
+  const hi = Math.max(from + n - 1, boundedTo);
+  for (let i = lo; i <= hi; i++) {
+    if (isFrozenAt(i)) {
+      return true;
+    }
+  }
+  return false;
+}

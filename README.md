@@ -18,10 +18,13 @@ have already run.
   original. Newly pasted/duplicated cells always come back editable.
 - **Frozen cells are dimmed** (~70% opacity) as a subtle hint that they are
   read-only.
+- **Frozen cells are pinned in place.** You can't move or drag a frozen cell,
+  and you can't move another cell across one (which would shift its position).
+  Editable cells that don't cross a frozen cell still reorder freely.
 
 ## How it works
 
-The plugin (`src/index.ts`) wires up three things:
+The plugin (`src/index.ts`) wires up four things:
 
 1. It connects to the global `NotebookActions.executed` signal and freezes the
    executed cell — on success or failure (`src/freeze.ts` → `freezeCellModel`).
@@ -35,8 +38,10 @@ The plugin (`src/index.ts`) wires up three things:
 3. It reflects the `editable` metadata onto each cell as the `jp-mod-frozen`
    class (styled in `style/base.css`), so frozen cells are dimmed. Deriving the
    class from metadata keeps the hint correct on load, freeze, and thaw.
-
-## Requirements
+4. All reordering (move commands and drag-and-drop) funnels through
+   `Notebook.moveCell`, which has no metadata gate. The plugin overrides it per
+   notebook to block any move that would displace a frozen cell, otherwise it
+   delegates to the original (`moveDisplacesFrozenCell` in `src/freeze.ts`).
 
 - JupyterLab >= 4.0.0
 
@@ -95,4 +100,6 @@ jlpm playwright test
    Render a markdown cell — it locks too. A cell that errors is frozen as well.
 3. Copy a frozen cell and paste it — the paste is editable (full opacity); edit
    and re-run it without affecting the original.
-4. Save, close, and reopen — previously frozen cells stay frozen and dimmed.
+4. Try to move/drag the frozen cell, or drag another cell across it — blocked.
+   Cells that don't cross a frozen one still reorder.
+5. Save, close, and reopen — previously frozen cells stay frozen and dimmed.

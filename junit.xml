@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="5" failures="0" errors="0" time="1.377">
-  <testsuite name="freezeCellModel" errors="0" failures="0" skipped="0" timestamp="2026-06-09T14:26:27" time="0.951" tests="5">
-    <testcase classname="freezeCellModel marks a cell read-only and non-deletable" name="freezeCellModel marks a cell read-only and non-deletable" time="0">
+<testsuites name="jest tests" tests="9" failures="0" errors="0" time="1.451">
+  <testsuite name="freezeCellModel" errors="0" failures="0" skipped="0" timestamp="2026-06-09T14:39:37" time="0.971" tests="9">
+    <testcase classname="freezeCellModel marks a cell read-only and non-deletable" name="freezeCellModel marks a cell read-only and non-deletable" time="0.001">
     </testcase>
     <testcase classname="thawCellModel removes the freeze metadata so the cell is editable again" name="thawCellModel removes the freeze metadata so the cell is editable again" time="0">
     </testcase>
@@ -10,6 +10,14 @@
     <testcase classname="isFrozen is true only when the cell is frozen" name="isFrozen is true only when the cell is frozen" time="0">
     </testcase>
     <testcase classname="isFrozen is false when the cell is explicitly editable" name="isFrozen is false when the cell is explicitly editable" time="0.001">
+    </testcase>
+    <testcase classname="moveDisplacesFrozenCell blocks moving the frozen cell itself" name="moveDisplacesFrozenCell blocks moving the frozen cell itself" time="0">
+    </testcase>
+    <testcase classname="moveDisplacesFrozenCell blocks an editable move that crosses the frozen cell" name="moveDisplacesFrozenCell blocks an editable move that crosses the frozen cell" time="0">
+    </testcase>
+    <testcase classname="moveDisplacesFrozenCell allows editable moves that do not cross the frozen cell" name="moveDisplacesFrozenCell allows editable moves that do not cross the frozen cell" time="0">
+    </testcase>
+    <testcase classname="moveDisplacesFrozenCell allows any move when no cell is frozen" name="moveDisplacesFrozenCell allows any move when no cell is frozen" time="0">
     </testcase>
   </testsuite>
 </testsuites>

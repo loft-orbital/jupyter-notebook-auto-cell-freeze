@@ -29,6 +29,40 @@ async function isCellDimmed(page: Page, index: number): Promise<boolean> {
   }, index);
 }
 
+/**
+ * The source of every cell in the active notebook, in order — used to assert
+ * whether a reorder happened.
+ */
+async function getCellSources(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const app = (window as any).jupyterapp;
+    const panel = app.shell.currentWidget;
+    return panel.content.widgets.map((w: any) =>
+      w.model.sharedModel.getSource()
+    );
+  });
+}
+
+/**
+ * Attempt a reorder through the same method that the move commands and
+ * drag-and-drop use (`Notebook.moveCell`), which the extension overrides.
+ */
+async function attemptMove(
+  page: Page,
+  from: number,
+  to: number,
+  n: number
+): Promise<void> {
+  await page.evaluate(
+    ({ from, to, n }) => {
+      const app = (window as any).jupyterapp;
+      const panel = app.shell.currentWidget;
+      panel.content.moveCell(from, to, n);
+    },
+    { from, to, n }
+  );
+}
+
 test.describe('auto cell freeze', () => {
   test.beforeEach(async ({ page }) => {
     await page.notebook.createNew();
@@ -60,5 +94,27 @@ test.describe('auto cell freeze', () => {
     expect(await isCellDimmed(page, 1)).toBe(false);
     // The original stays frozen and dimmed.
     expect(await isCellDimmed(page, 0)).toBe(true);
+  });
+
+  test('frozen cells cannot be re-ordered', async ({ page }) => {
+    await page.notebook.setCell(0, 'code', '# a');
+    await page.notebook.runCell(0);
+    expect(await getCellEditable(page, 0)).toBe(false);
+
+    await page.notebook.addCell('code', '# b');
+    await page.notebook.addCell('code', '# c');
+    expect(await getCellSources(page)).toEqual(['# a', '# b', '# c']);
+
+    // Moving the frozen cell itself is blocked.
+    await attemptMove(page, 0, 1, 1);
+    expect(await getCellSources(page)).toEqual(['# a', '# b', '# c']);
+
+    // Moving an editable cell across the frozen cell is blocked.
+    await attemptMove(page, 2, 0, 1);
+    expect(await getCellSources(page)).toEqual(['# a', '# b', '# c']);
+
+    // Reordering editable cells that don't cross the frozen cell still works.
+    await attemptMove(page, 2, 1, 1);
+    expect(await getCellSources(page)).toEqual(['# a', '# c', '# b']);
   });
 });

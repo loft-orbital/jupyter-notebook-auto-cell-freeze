@@ -5,6 +5,7 @@ import {
   EDITABLE,
   freezeCellModel,
   isFrozen,
+  moveDisplacesFrozenCell,
   thawCellModel
 } from '../freeze';
 
@@ -71,5 +72,35 @@ describe('isFrozen', () => {
     model.setMetadata(EDITABLE, true);
 
     expect(isFrozen(model)).toBe(false);
+  });
+});
+
+describe('moveDisplacesFrozenCell', () => {
+  // Cells: [0, 1, 2(frozen), 3, 4]
+  const frozenAt2 = (i: number): boolean => i === 2;
+
+  it('blocks moving the frozen cell itself', () => {
+    // Move cell 2 down one (to=3).
+    expect(moveDisplacesFrozenCell(5, 2, 3, 1, frozenAt2)).toBe(true);
+    // Move cell 2 up one (to=1).
+    expect(moveDisplacesFrozenCell(5, 2, 1, 1, frozenAt2)).toBe(true);
+  });
+
+  it('blocks an editable move that crosses the frozen cell', () => {
+    // Move editable cell 4 up to index 0 — sweeps across cell 2.
+    expect(moveDisplacesFrozenCell(5, 4, 0, 1, frozenAt2)).toBe(true);
+    // Move editable cell 1 down past cell 2 (to=3).
+    expect(moveDisplacesFrozenCell(5, 1, 3, 1, frozenAt2)).toBe(true);
+  });
+
+  it('allows editable moves that do not cross the frozen cell', () => {
+    // Swap cells 0 and 1 — entirely above the frozen cell.
+    expect(moveDisplacesFrozenCell(5, 0, 1, 1, frozenAt2)).toBe(false);
+    // Swap cells 3 and 4 — entirely below the frozen cell.
+    expect(moveDisplacesFrozenCell(5, 4, 3, 1, frozenAt2)).toBe(false);
+  });
+
+  it('allows any move when no cell is frozen', () => {
+    expect(moveDisplacesFrozenCell(5, 4, 0, 1, () => false)).toBe(false);
   });
 });
