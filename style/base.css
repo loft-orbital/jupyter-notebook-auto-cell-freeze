@@ -3,3 +3,8 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+/* Dim cells that have been frozen (made read-only after execution). */
+.jp-Cell.jp-mod-frozen {
+  opacity: 0.7;
+}

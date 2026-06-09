@@ -16,13 +16,15 @@ have already run.
 - **Copying a frozen cell yields an editable copy.** You can copy (or duplicate)
   a read-only cell, paste it, tweak it, and run it again without touching the
   original. Newly pasted/duplicated cells always come back editable.
+- **Frozen cells are dimmed** (~70% opacity) as a subtle hint that they are
+  read-only.
 
 ## How it works
 
-The plugin (`src/index.ts`) wires up two things:
+The plugin (`src/index.ts`) wires up three things:
 
 1. It connects to the global `NotebookActions.executed` signal and freezes the
-   executed cell on success (`src/freeze.ts` → `freezeCellModel`).
+   executed cell — on success or failure (`src/freeze.ts` → `freezeCellModel`).
 2. JupyterLab's copy keeps the `editable` metadata on the clipboard, which would
    otherwise make a pasted copy read-only. To prevent that, the plugin watches
    each notebook (via `INotebookTracker`) and thaws any cell **inserted after
@@ -30,6 +32,9 @@ The plugin (`src/index.ts`) wires up two things:
    an already-frozen notebook keeps its frozen cells on open, while pastes,
    duplicates, and cross-notebook pastes come back editable. This is independent
    of the clipboard backend (internal or system clipboard) and of command IDs.
+3. It reflects the `editable` metadata onto each cell as the `jp-mod-frozen`
+   class (styled in `style/base.css`), so frozen cells are dimmed. Deriving the
+   class from metadata keeps the hint correct on load, freeze, and thaw.
 
 ## Requirements
 
@@ -86,8 +91,8 @@ jlpm playwright test
 ## Try it
 
 1. `jupyter lab`, open a notebook.
-2. Run a code cell — it becomes read-only and undeletable. Render a markdown
-   cell — it locks too. A cell that errors is frozen as well.
-3. Copy a frozen cell and paste it — the paste is editable; edit and re-run it
-   without affecting the original.
-4. Save, close, and reopen — previously frozen cells stay frozen.
+2. Run a code cell — it becomes read-only, undeletable, and dims slightly.
+   Render a markdown cell — it locks too. A cell that errors is frozen as well.
+3. Copy a frozen cell and paste it — the paste is editable (full opacity); edit
+   and re-run it without affecting the original.
+4. Save, close, and reopen — previously frozen cells stay frozen and dimmed.

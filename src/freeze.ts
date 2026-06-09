@@ -25,3 +25,12 @@ export function thawCellModel(model: ICellModel): void {
   model.deleteMetadata(EDITABLE);
   model.deleteMetadata(DELETABLE);
 }
+
+/**
+ * Whether a cell is frozen (read-only). The `editable` metadata is the single
+ * source of truth, so this stays correct across freeze, thaw, and notebook
+ * load.
+ */
+export function isFrozen(model: ICellModel): boolean {
+  return model.getMetadata(EDITABLE) === false;
+}

@@ -1,6 +1,12 @@
 import type { ICellModel } from '@jupyterlab/cells';
 
-import { DELETABLE, EDITABLE, freezeCellModel, thawCellModel } from '../freeze';
+import {
+  DELETABLE,
+  EDITABLE,
+  freezeCellModel,
+  isFrozen,
+  thawCellModel
+} from '../freeze';
 
 /**
  * A minimal in-memory stand-in for the slice of `ICellModel` that the freeze
@@ -47,5 +53,23 @@ describe('thawCellModel', () => {
     expect(() => thawCellModel(model)).not.toThrow();
     expect(model.getMetadata(EDITABLE)).toBeUndefined();
     expect(model.getMetadata(DELETABLE)).toBeUndefined();
+  });
+});
+
+describe('isFrozen', () => {
+  it('is true only when the cell is frozen', () => {
+    expect(isFrozen(model)).toBe(false);
+
+    freezeCellModel(model);
+    expect(isFrozen(model)).toBe(true);
+
+    thawCellModel(model);
+    expect(isFrozen(model)).toBe(false);
+  });
+
+  it('is false when the cell is explicitly editable', () => {
+    model.setMetadata(EDITABLE, true);
+
+    expect(isFrozen(model)).toBe(false);
   });
 });

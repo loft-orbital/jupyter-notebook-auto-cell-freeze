@@ -18,6 +18,17 @@ async function getCellEditable(
   }, index);
 }
 
+/**
+ * Whether a cell widget carries the `jp-mod-frozen` class (the visual dim hint).
+ */
+async function isCellDimmed(page: Page, index: number): Promise<boolean> {
+  return page.evaluate(i => {
+    const app = (window as any).jupyterapp;
+    const panel = app.shell.currentWidget;
+    return panel.content.widgets[i].node.classList.contains('jp-mod-frozen');
+  }, index);
+}
+
 test.describe('auto cell freeze', () => {
   test.beforeEach(async ({ page }) => {
     await page.notebook.createNew();
@@ -28,6 +39,7 @@ test.describe('auto cell freeze', () => {
     await page.notebook.runCell(0);
 
     expect(await getCellEditable(page, 0)).toBe(false);
+    expect(await isCellDimmed(page, 0)).toBe(true);
   });
 
   test('a pasted copy of a frozen cell is editable', async ({ page }) => {
@@ -42,8 +54,11 @@ test.describe('auto cell freeze', () => {
     await page.keyboard.press('c');
     await page.keyboard.press('v');
 
-    // The paste created a second cell that must NOT be read-only.
+    // The paste created a second cell that must NOT be read-only or dimmed.
     expect(await page.notebook.getCellCount()).toBe(2);
     expect(await getCellEditable(page, 1)).not.toBe(false);
+    expect(await isCellDimmed(page, 1)).toBe(false);
+    // The original stays frozen and dimmed.
+    expect(await isCellDimmed(page, 0)).toBe(true);
   });
 });
