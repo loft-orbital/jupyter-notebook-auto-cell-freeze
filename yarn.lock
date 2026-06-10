@@ -2076,7 +2076,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/application@npm:^4.0.0, @jupyterlab/application@npm:^4.5.8":
+"@jupyterlab/application@npm:^4.5.8":
   version: 4.5.8
   resolution: "@jupyterlab/application@npm:4.5.8"
   dependencies:
@@ -2147,7 +2147,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/builder@npm:^4.0.0":
+"@jupyterlab/builder@npm:^4.5.8":
   version: 4.5.8
   resolution: "@jupyterlab/builder@npm:4.5.8"
   dependencies:
@@ -2189,7 +2189,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/cells@npm:^4.0.0, @jupyterlab/cells@npm:^4.5.8":
+"@jupyterlab/cells@npm:^4.5.8":
   version: 4.5.8
   resolution: "@jupyterlab/cells@npm:4.5.8"
   dependencies:
@@ -2469,7 +2469,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/notebook@npm:^4.0.0, @jupyterlab/notebook@npm:^4.5.8":
+"@jupyterlab/notebook@npm:^4.5.8":
   version: 4.5.8
   resolution: "@jupyterlab/notebook@npm:4.5.8"
   dependencies:
@@ -2663,7 +2663,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlab/testutils@npm:^4.0.0":
+"@jupyterlab/testutils@npm:^4.5.8":
   version: 4.5.8
   resolution: "@jupyterlab/testutils@npm:4.5.8"
   dependencies:
@@ -7610,11 +7610,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "jupyterlab-auto-cell-freeze@workspace:."
   dependencies:
-    "@jupyterlab/application": ^4.0.0
-    "@jupyterlab/builder": ^4.0.0
-    "@jupyterlab/cells": ^4.0.0
-    "@jupyterlab/notebook": ^4.0.0
-    "@jupyterlab/testutils": ^4.0.0
+    "@jupyterlab/application": ^4.5.8
+    "@jupyterlab/builder": ^4.5.8
+    "@jupyterlab/cells": ^4.5.8
+    "@jupyterlab/notebook": ^4.5.8
+    "@jupyterlab/testutils": ^4.5.8
     "@types/jest": ^29.2.0
     "@types/json-schema": ^7.0.11
     "@types/react": ^18.0.26
