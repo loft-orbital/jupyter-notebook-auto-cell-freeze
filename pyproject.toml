@@ -37,8 +37,8 @@ artifacts = ["jupyterlab_auto_cell_freeze/labextension"]
 exclude = [".github", "binder"]
 
 [tool.hatch.build.targets.wheel.shared-data]
-"jupyterlab_auto_cell_freeze/labextension" = "share/jupyter/labextensions/jupyterlab-auto-cell-freeze"
-"install.json" = "share/jupyter/labextensions/jupyterlab-auto-cell-freeze/install.json"
+"jupyterlab_auto_cell_freeze/labextension" = "share/jupyter/labextensions/jupyter-notebook-auto-cell-freeze"
+"install.json" = "share/jupyter/labextensions/jupyter-notebook-auto-cell-freeze/install.json"
 
 [tool.hatch.build.hooks.version]
 path = "jupyterlab_auto_cell_freeze/_version.py"

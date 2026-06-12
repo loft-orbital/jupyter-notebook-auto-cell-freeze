@@ -7626,9 +7626,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jupyterlab-auto-cell-freeze@workspace:.":
+"jupyter-notebook-auto-cell-freeze@workspace:.":
   version: 0.0.0-use.local
-  resolution: "jupyterlab-auto-cell-freeze@workspace:."
+  resolution: "jupyter-notebook-auto-cell-freeze@workspace:."
   dependencies:
     "@jupyterlab/application": ^4.5.8
     "@jupyterlab/builder": ^4.5.8

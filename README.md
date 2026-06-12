@@ -1,4 +1,4 @@
-# jupyterlab-auto-cell-freeze
+# jupyter-notebook-auto-cell-freeze
 
 A JupyterLab extension that automatically makes a notebook cell **read-only**
 once it has been executed, so you don't accidentally edit or delete a cell you
@@ -68,7 +68,7 @@ To rebuild automatically on every change, run `jlpm watch` in one terminal and
 
 ```
    local extensions:
-        jupyterlab-auto-cell-freeze: [...]
+        jupyter-notebook-auto-cell-freeze: [...]
 ```
 
 ## Uninstall

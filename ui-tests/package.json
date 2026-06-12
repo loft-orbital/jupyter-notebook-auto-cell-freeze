@@ -1,7 +1,7 @@
 {
-  "name": "jupyterlab-auto-cell-freeze-ui-tests",
+  "name": "jupyter-notebook-auto-cell-freeze-ui-tests",
   "version": "1.0.0",
-  "description": "JupyterLab jupyterlab-auto-cell-freeze Integration Tests",
+  "description": "JupyterLab jupyter-notebook-auto-cell-freeze Integration Tests",
   "private": true,
   "scripts": {
     "start": "jupyter lab --config jupyter_server_test_config.py",
