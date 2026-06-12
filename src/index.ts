@@ -43,7 +43,7 @@ const FROZEN_CLASS = 'jp-mod-frozen';
  *     drag-and-drop) that would displace a frozen cell is blocked.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupyterlab-auto-cell-freeze:plugin',
+  id: 'jupyter-notebook-auto-cell-freeze:plugin',
   description:
     'Automatically make notebook cells read-only after they are executed.',
   autoStart: true,
