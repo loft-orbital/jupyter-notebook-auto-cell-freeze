@@ -74,7 +74,7 @@ To rebuild automatically on every change, run `jlpm watch` in one terminal and
 ## Uninstall
 
 ```bash
-pip uninstall jupyterlab_auto_cell_freeze
+pip uninstall jupyter_notebook_auto_cell_freeze
 ```
 
 ## Testing

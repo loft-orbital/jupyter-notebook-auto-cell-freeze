@@ -1,4 +1,4 @@
-# Making a new release of jupyterlab_auto_cell_freeze
+# Making a new release of jupyter_notebook_auto_cell_freeze
 
 The extension can be published to `PyPI` and `npm` manually or using the [Jupyter Releaser](https://github.com/jupyter-server/jupyter_releaser).
 
