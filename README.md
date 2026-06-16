@@ -1,8 +1,8 @@
 # jupyter-notebook-auto-cell-freeze
 
 A JupyterLab extension that automatically makes a notebook cell **read-only**
-once it has been executed, so you don't accidentally edit or delete a cell you
-have already run.
+once it has been executed, so you don't accidentally edit, delete, or re-run a
+cell you have already run.
 
 ## What it does
 
@@ -21,6 +21,10 @@ have already run.
 - **Frozen cells are pinned in place.** You can't move or drag a frozen cell,
   and you can't move another cell across one (which would shift its position).
   Editable cells that don't cross a frozen cell still reorder freely.
+- **Frozen cells can't be re-executed.** `editable: false` only locks the
+  editor — JupyterLab will still run the cell — so the plugin also blocks
+  execution of a frozen cell. Copy it to an editable cell if you want to run it
+  again.
 
 ## Configuration
 
@@ -46,8 +50,8 @@ The extension exposes two settings in the JupyterLab **Settings Editor**
   `experiments/`), `reports/*.ipynb` (notebooks directly in `reports/`).
 
 When the extension is inactive for a notebook (disabled, or its path is not
-matched), executed cells are no longer frozen, frozen cells are not dimmed or
-pinned, and pasted cells are left untouched. Setting changes take effect
+matched), executed cells are no longer frozen, frozen cells are not dimmed,
+pinned, or blocked from re-executing, and pasted cells are left untouched. Setting changes take effect
 immediately, without reloading. Cells already frozen in a saved notebook stay
 read-only, because that is stored in their own `editable` metadata.
 
@@ -72,7 +76,7 @@ it entirely:
 
 ## How it works
 
-The plugin (`src/index.ts`) wires up four things:
+The plugin (`src/index.ts`) wires up five things:
 
 1. It connects to the global `NotebookActions.executed` signal and freezes the
    executed cell — on success or failure (`src/freeze.ts` → `freezeCellModel`).
@@ -90,6 +94,9 @@ The plugin (`src/index.ts`) wires up four things:
    `Notebook.moveCell`, which has no metadata gate. The plugin overrides it per
    notebook to block any move that would displace a frozen cell, otherwise it
    delegates to the original (`moveDisplacesFrozenCell` in `src/freeze.ts`).
+5. All code-cell execution funnels through the static `CodeCell.execute`, which
+   has no metadata gate (`editable: false` only locks the editor). The plugin
+   wraps it to no-op for frozen cells, otherwise it delegates to the original.
 
 - JupyterLab >= 4.0.0
 
@@ -146,6 +153,7 @@ jlpm playwright test
 1. `jupyter lab`, open a notebook.
 2. Run a code cell — it becomes read-only, undeletable, and dims slightly.
    Render a markdown cell — it locks too. A cell that errors is frozen as well.
+   Try to run the frozen cell again — nothing happens; its output is untouched.
 3. Copy a frozen cell and paste it — the paste is editable (full opacity); edit
    and re-run it without affecting the original.
 4. Try to move/drag the frozen cell, or drag another cell across it — blocked.
