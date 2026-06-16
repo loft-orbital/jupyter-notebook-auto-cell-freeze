@@ -7,7 +7,7 @@
     "enabled": {
       "type": "boolean",
       "title": "Enabled",
-      "description": "Turn the extension on or off. When off, executed cells are no longer frozen, frozen cells are not dimmed or pinned, and pasted cells are left untouched. Cells already frozen in a saved notebook stay read-only, because that is stored in their own metadata.",
+      "description": "Turn the extension on or off. When off, executed cells are no longer frozen, frozen cells are not dimmed, pinned, or blocked from re-executing, and pasted cells are left untouched. Cells already frozen in a saved notebook stay read-only, because that is stored in their own metadata.",
       "default": true
     },
     "paths": {

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="9" failures="0" errors="0" time="1.451">
-  <testsuite name="freezeCellModel" errors="0" failures="0" skipped="0" timestamp="2026-06-09T14:39:37" time="0.971" tests="9">
+<testsuites name="jest tests" tests="20" failures="0" errors="0" time="1.819">
+  <testsuite name="freezeCellModel" errors="0" failures="0" skipped="0" timestamp="2026-06-16T16:42:08" time="1.252" tests="20">
     <testcase classname="freezeCellModel marks a cell read-only and non-deletable" name="freezeCellModel marks a cell read-only and non-deletable" time="0.001">
     </testcase>
     <testcase classname="thawCellModel removes the freeze metadata so the cell is editable again" name="thawCellModel removes the freeze metadata so the cell is editable again" time="0">
     </testcase>
     <testcase classname="thawCellModel is a no-op for a cell that was never frozen" name="thawCellModel is a no-op for a cell that was never frozen" time="0">
     </testcase>
-    <testcase classname="isFrozen is true only when the cell is frozen" name="isFrozen is true only when the cell is frozen" time="0">
+    <testcase classname="isFrozen is true only when the cell is frozen" name="isFrozen is true only when the cell is frozen" time="0.001">
     </testcase>
-    <testcase classname="isFrozen is false when the cell is explicitly editable" name="isFrozen is false when the cell is explicitly editable" time="0.001">
+    <testcase classname="isFrozen is false when the cell is explicitly editable" name="isFrozen is false when the cell is explicitly editable" time="0">
     </testcase>
     <testcase classname="moveDisplacesFrozenCell blocks moving the frozen cell itself" name="moveDisplacesFrozenCell blocks moving the frozen cell itself" time="0">
     </testcase>
@@ -18,6 +18,28 @@
     <testcase classname="moveDisplacesFrozenCell allows editable moves that do not cross the frozen cell" name="moveDisplacesFrozenCell allows editable moves that do not cross the frozen cell" time="0">
     </testcase>
     <testcase classname="moveDisplacesFrozenCell allows any move when no cell is frozen" name="moveDisplacesFrozenCell allows any move when no cell is frozen" time="0">
+    </testcase>
+    <testcase classname="globToRegExp treats `*` as within-segment (does not cross `/`)" name="globToRegExp treats `*` as within-segment (does not cross `/`)" time="0.001">
+    </testcase>
+    <testcase classname="globToRegExp treats `**` as crossing `/`, including zero segments" name="globToRegExp treats `**` as crossing `/`, including zero segments" time="0">
+    </testcase>
+    <testcase classname="globToRegExp matches a trailing `/**` against the directory itself and descendants" name="globToRegExp matches a trailing `/**` against the directory itself and descendants" time="0">
+    </testcase>
+    <testcase classname="globToRegExp matches everything for a bare `**`" name="globToRegExp matches everything for a bare `**`" time="0">
+    </testcase>
+    <testcase classname="globToRegExp treats `?` as a single non-`/` character" name="globToRegExp treats `?` as a single non-`/` character" time="0">
+    </testcase>
+    <testcase classname="globToRegExp escapes regex metacharacters so they match literally" name="globToRegExp escapes regex metacharacters so they match literally" time="0.001">
+    </testcase>
+    <testcase classname="globToRegExp anchors the whole path" name="globToRegExp anchors the whole path" time="0">
+    </testcase>
+    <testcase classname="globToRegExp is case-sensitive" name="globToRegExp is case-sensitive" time="0">
+    </testcase>
+    <testcase classname="pathMatchesAny returns false for an empty pattern list" name="pathMatchesAny returns false for an empty pattern list" time="0">
+    </testcase>
+    <testcase classname="pathMatchesAny matches when any single pattern matches (OR semantics)" name="pathMatchesAny matches when any single pattern matches (OR semantics)" time="0">
+    </testcase>
+    <testcase classname="pathMatchesAny matches when a later pattern matches after an earlier miss" name="pathMatchesAny matches when a later pattern matches after an earlier miss" time="0">
     </testcase>
   </testsuite>
 </testsuites>

@@ -7,7 +7,7 @@ import {
   NotebookActions,
   NotebookPanel
 } from '@jupyterlab/notebook';
-import { Cell } from '@jupyterlab/cells';
+import { Cell, CodeCell } from '@jupyterlab/cells';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import {
@@ -34,7 +34,7 @@ const FROZEN_CLASS = 'jp-mod-frozen';
  * A JupyterLab extension that automatically turns a notebook cell read-only
  * once it has been executed.
  *
- * Four behaviours:
+ * Five behaviours:
  *
  *  1. When a cell finishes executing, it is frozen (`editable: false`,
  *     `deletable: false`). This persists in the notebook.
@@ -50,7 +50,12 @@ const FROZEN_CLASS = 'jp-mod-frozen';
  *  4. Frozen cells are pinned in place: any reorder (move command or
  *     drag-and-drop) that would displace a frozen cell is blocked.
  *
- * All four behaviours are gated on two settings, read live so changes from the
+ *  5. Frozen cells cannot be executed again. `editable: false` only makes the
+ *     editor read-only — JupyterLab still runs the cell — so code-cell
+ *     execution (which all funnels through `CodeCell.execute`) is
+ *     short-circuited for frozen cells.
+ *
+ * All five behaviours are gated on two settings, read live so changes from the
  * JupyterLab settings editor take effect immediately:
  *
  *  - `enabled` — master switch. When off, the extension does nothing.
@@ -119,6 +124,22 @@ const plugin: JupyterFrontEndPlugin<void> = {
         freezeCellModel(args.cell.model);
       }
     });
+
+    // 5. Block re-execution of frozen cells. `editable: false` only makes the
+    //    editor read-only; JupyterLab still runs the cell. Every code-cell
+    //    execution funnels through the static `CodeCell.execute`, so wrap it to
+    //    no-op (resolve with no reply, as a kernel-less run would) when the cell
+    //    is frozen and the extension applies to its notebook. Map the cell back
+    //    to its panel for the `appliesTo` gate the same way behaviour 1 does;
+    //    everything else delegates to the original implementation.
+    const originalExecute = CodeCell.execute.bind(CodeCell);
+    CodeCell.execute = (cell, sessionContext, metadata) => {
+      const panel = tracker.find(p => p.content.widgets.includes(cell));
+      if (appliesTo(panel?.context.path) && isFrozen(cell.model)) {
+        return Promise.resolve();
+      }
+      return originalExecute(cell, sessionContext, metadata);
+    };
 
     tracker.widgetAdded.connect((_sender, panel: NotebookPanel) => {
       void panel.context.ready.then(() => {

@@ -19,6 +19,21 @@ async function getCellEditable(
 }
 
 /**
+ * The kernel execution count of a code cell in the active notebook, reached the
+ * same way as the other helpers. `null` for a cell that has never run.
+ */
+async function getCellExecutionCount(
+  page: Page,
+  index: number
+): Promise<number | null> {
+  return page.evaluate(i => {
+    const app = (window as any).jupyterapp;
+    const panel = app.shell.currentWidget;
+    return panel.content.widgets[i].model.executionCount ?? null;
+  }, index);
+}
+
+/**
  * Whether a cell widget carries the `jp-mod-frozen` class (the visual dim hint).
  */
 async function isCellDimmed(page: Page, index: number): Promise<boolean> {
@@ -74,6 +89,20 @@ test.describe('auto cell freeze', () => {
 
     expect(await getCellEditable(page, 0)).toBe(false);
     expect(await isCellDimmed(page, 0)).toBe(true);
+  });
+
+  test('a frozen cell cannot be executed again', async ({ page }) => {
+    await page.notebook.setCell(0, 'code', '1 + 1');
+    await page.notebook.runCell(0);
+
+    // The cell ran once and is now frozen.
+    expect(await getCellEditable(page, 0)).toBe(false);
+    expect(await getCellExecutionCount(page, 0)).toBe(1);
+
+    // Running the frozen cell again is a no-op: the kernel is never invoked, so
+    // the execution count does not advance past its first (and only) run.
+    await page.notebook.runCell(0);
+    expect(await getCellExecutionCount(page, 0)).toBe(1);
   });
 
   test('a pasted copy of a frozen cell is editable', async ({ page }) => {
