@@ -73,9 +73,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     tracker: INotebookTracker,
     settingRegistry: ISettingRegistry | null
   ) => {
-    console.log(
-      'JupyterLab extension jupyter-notebook-auto-cell-freeze is activated!'
-    );
     // Live settings state, read by every behaviour below so changes apply
     // without a reload. Defaults are corrected once the settings load resolves.
     let enabled = true;
@@ -185,9 +182,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // are unavailable the extension stays enabled everywhere (the defaults).
     if (settingRegistry) {
       const reflectSettings = (settings: ISettingRegistry.ISettings): void => {
-        console.log(
-          `enabled setting value: ${settings.get('enabled').composite}`
-        );
         enabled = settings.get('enabled').composite !== false;
         const rawPaths = settings.get('paths').composite;
         patterns = Array.isArray(rawPaths) ? (rawPaths as string[]) : [];
