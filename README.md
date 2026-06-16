@@ -22,6 +22,28 @@ have already run.
   and you can't move another cell across one (which would shift its position).
   Editable cells that don't cross a frozen cell still reorder freely.
 
+## Configuration
+
+The extension exposes a single setting in the JupyterLab **Settings Editor**
+(_Settings → Settings Editor → Auto Cell Freeze_):
+
+- **Enabled** (`enabled`, default `true`) — turn the extension on or off.
+
+When disabled, executed cells are no longer frozen, frozen cells are not dimmed
+or pinned, and pasted cells are left untouched. Toggling the setting takes
+effect immediately, without reloading. Cells already frozen in a saved notebook
+stay read-only, because that is stored in their own `editable` metadata.
+
+To disable it for everyone (e.g. in a shared deployment), ship the override in
+the system settings overrides file
+(`{sys.prefix}/share/jupyter/lab/settings/overrides.json`):
+
+```json
+{
+  "jupyter-notebook-auto-cell-freeze:plugin": { "enabled": false }
+}
+```
+
 ## How it works
 
 The plugin (`src/index.ts`) wires up four things:

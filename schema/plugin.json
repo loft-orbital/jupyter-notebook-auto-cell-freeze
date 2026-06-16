@@ -1,0 +1,15 @@
+{
+  "title": "Auto Cell Freeze",
+  "description": "Automatically make notebook cells read-only after they are executed.",
+  "jupyter.lab.setting-icon-label": "Auto Cell Freeze",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "title": "Enabled",
+      "description": "Turn the extension on or off. When off, executed cells are no longer frozen, frozen cells are not dimmed or pinned, and pasted cells are left untouched. Cells already frozen in a saved notebook stay read-only, because that is stored in their own metadata.",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -16,7 +16,8 @@
     "files": [
         "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
         "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
-        "src/**/*.{ts,tsx}"
+        "src/**/*.{ts,tsx}",
+        "schema/*.json"
     ],
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
@@ -55,7 +56,8 @@
     "dependencies": {
         "@jupyterlab/application": "^4.5.8",
         "@jupyterlab/cells": "^4.5.8",
-        "@jupyterlab/notebook": "^4.5.8"
+        "@jupyterlab/notebook": "^4.5.8",
+        "@jupyterlab/settingregistry": "^4.5.8"
     },
     "devDependencies": {
         "@jupyterlab/builder": "^4.5.8",
@@ -97,7 +99,8 @@
     },
     "jupyterlab": {
         "extension": true,
-        "outputDir": "jupyter_notebook_auto_cell_freeze/labextension"
+        "outputDir": "jupyter_notebook_auto_cell_freeze/labextension",
+        "schemaDir": "schema"
     },
     "eslintIgnore": [
         "node_modules",

@@ -8,6 +8,7 @@ import {
   NotebookPanel
 } from '@jupyterlab/notebook';
 import { Cell } from '@jupyterlab/cells';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import {
   freezeCellModel,
@@ -15,6 +16,12 @@ import {
   moveDisplacesFrozenCell,
   thawCellModel
 } from './freeze';
+
+/**
+ * The plugin id. Also the key under which the settings schema
+ * (`schema/plugin.json`) is registered.
+ */
+const PLUGIN_ID = 'jupyter-notebook-auto-cell-freeze:plugin';
 
 /**
  * CSS class added to a frozen (read-only) cell so it can be visually dimmed.
@@ -41,18 +48,54 @@ const FROZEN_CLASS = 'jp-mod-frozen';
  *
  *  4. Frozen cells are pinned in place: any reorder (move command or
  *     drag-and-drop) that would displace a frozen cell is blocked.
+ *
+ * All four behaviours are gated on the `enabled` setting. Toggling it from the
+ * JupyterLab settings editor takes effect immediately: when turned off the
+ * extension stops freezing, thawing, dimming, and pinning. Cells already frozen
+ * in a saved notebook stay read-only because that lives in their own metadata.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupyter-notebook-auto-cell-freeze:plugin',
+  id: PLUGIN_ID,
   description:
     'Automatically make notebook cells read-only after they are executed.',
   autoStart: true,
   requires: [INotebookTracker],
-  activate: (_app: JupyterFrontEnd, tracker: INotebookTracker) => {
+  optional: [ISettingRegistry],
+  activate: (
+    _app: JupyterFrontEnd,
+    tracker: INotebookTracker,
+    settingRegistry: ISettingRegistry | null
+  ) => {
+    // Whether the extension is active. Driven by the `enabled` setting and read
+    // live by every behaviour below, so the settings toggle applies without a
+    // reload. Defaults to on; corrected once the settings load resolves.
+    let enabled = true;
+
+    // Dimming (behaviour 3, hoisted here so the settings handler can re-apply
+    // it across open notebooks when `enabled` changes). Reflect the `editable`
+    // metadata onto each cell as the `jp-mod-frozen` class while enabled. Wire
+    // each cell once so the class tracks later metadata changes; deriving it
+    // from `enabled && isFrozen` keeps it correct on load, freeze, thaw, and
+    // toggle.
+    const wired = new WeakSet<Cell>();
+    const syncCell = (cell: Cell): void => {
+      cell.toggleClass(FROZEN_CLASS, enabled && isFrozen(cell.model));
+      if (!wired.has(cell)) {
+        wired.add(cell);
+        cell.model.metadataChanged.connect(() => {
+          cell.toggleClass(FROZEN_CLASS, enabled && isFrozen(cell.model));
+        });
+      }
+    };
+    const syncPanel = (panel: NotebookPanel): void =>
+      panel.content.widgets.forEach(syncCell);
+
     // 1. Freeze a cell once it has been executed, whether the execution
     //    succeeded or failed.
     NotebookActions.executed.connect((_sender, args) => {
-      freezeCellModel(args.cell.model);
+      if (enabled) {
+        freezeCellModel(args.cell.model);
+      }
     });
 
     tracker.widgetAdded.connect((_sender, panel: NotebookPanel) => {
@@ -70,7 +113,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         //    notebook untouched. Freshly created empty cells carry no freeze
         //    metadata, so thawing them is a harmless no-op.
         model.cells.changed.connect((_cells, change) => {
-          if (change.type !== 'add') {
+          if (!enabled || change.type !== 'add') {
             return;
           }
           for (const cellModel of change.newValues) {
@@ -78,25 +121,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
           }
         });
 
-        // 3. Dim frozen cells. Reflect the `editable` metadata onto each cell
-        //    widget as the `jp-mod-frozen` class. Deriving the class from
-        //    metadata keeps it correct on load (persisted frozen cells), on
-        //    freeze (execute), and on thaw (paste/duplicate).
+        // 3. Dim frozen cells via `syncPanel` (see above). Re-run on every
+        //    model content change so cells added or reloaded pick up the class.
         const notebook = panel.content;
-        const wired = new WeakSet<Cell>();
-        const syncCell = (cell: Cell): void => {
-          cell.toggleClass(FROZEN_CLASS, isFrozen(cell.model));
-          if (!wired.has(cell)) {
-            wired.add(cell);
-            cell.model.metadataChanged.connect(() => {
-              cell.toggleClass(FROZEN_CLASS, isFrozen(cell.model));
-            });
-          }
-        };
-        const syncAllCells = (): void => notebook.widgets.forEach(syncCell);
-
-        syncAllCells();
-        notebook.modelContentChanged.connect(syncAllCells);
+        syncPanel(panel);
+        notebook.modelContentChanged.connect(() => syncPanel(panel));
 
         // 4. Pin frozen cells in place. All reordering (move commands and
         //    drag-and-drop) funnels through `Notebook.moveCell`, which has no
@@ -107,6 +136,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         notebook.moveCell = (from: number, to: number, n = 1): void => {
           const cells = notebook.model?.cells;
           if (
+            enabled &&
             cells &&
             moveDisplacesFrozenCell(cells.length, from, to, n, i =>
               isFrozen(cells.get(i))
@@ -118,6 +148,31 @@ const plugin: JupyterFrontEndPlugin<void> = {
         };
       });
     });
+
+    // Track the `enabled` setting. When it changes, re-apply the dim hint
+    // across every open notebook so the toggle is reflected immediately. The
+    // event-driven behaviours (freeze, thaw, pin) read `enabled` when they
+    // fire, so they need no extra wiring here. If settings are unavailable the
+    // extension stays enabled (the default).
+    if (settingRegistry) {
+      const reflectSettings = (settings: ISettingRegistry.ISettings): void => {
+        enabled = settings.get('enabled').composite !== false;
+        tracker.forEach(syncPanel);
+      };
+
+      void settingRegistry
+        .load(PLUGIN_ID)
+        .then(settings => {
+          reflectSettings(settings);
+          settings.changed.connect(reflectSettings);
+        })
+        .catch(reason => {
+          console.error(
+            `Failed to load settings for ${PLUGIN_ID}; auto cell freeze stays enabled.`,
+            reason
+          );
+        });
+    }
   }
 };
 

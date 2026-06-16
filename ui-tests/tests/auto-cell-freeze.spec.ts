@@ -1,4 +1,4 @@
-import { expect, test } from '@jupyterlab/galata';
+import { expect, galata, test } from '@jupyterlab/galata';
 import type { Page } from '@playwright/test';
 
 /**
@@ -116,5 +116,34 @@ test.describe('auto cell freeze', () => {
     // Reordering editable cells that don't cross the frozen cell still works.
     await attemptMove(page, 2, 1, 1);
     expect(await getCellSources(page)).toEqual(['# a', '# c', '# b']);
+  });
+});
+
+test.describe('auto cell freeze disabled via settings', () => {
+  // Start JupyterLab with the extension turned off through its setting.
+  test.use({
+    mockSettings: {
+      ...galata.DEFAULT_SETTINGS,
+      'jupyter-notebook-auto-cell-freeze:plugin': { enabled: false }
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await page.notebook.createNew();
+  });
+
+  test('does nothing when disabled', async ({ page }) => {
+    await page.notebook.setCell(0, 'code', '# a');
+    await page.notebook.runCell(0);
+
+    // Executing a cell leaves it editable and undimmed.
+    expect(await getCellEditable(page, 0)).not.toBe(false);
+    expect(await isCellDimmed(page, 0)).toBe(false);
+
+    // Reordering is not blocked either.
+    await page.notebook.addCell('code', '# b');
+    expect(await getCellSources(page)).toEqual(['# a', '# b']);
+    await attemptMove(page, 1, 0, 1);
+    expect(await getCellSources(page)).toEqual(['# b', '# a']);
   });
 });
