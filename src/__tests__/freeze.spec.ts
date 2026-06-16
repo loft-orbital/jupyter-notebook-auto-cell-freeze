@@ -4,8 +4,10 @@ import {
   DELETABLE,
   EDITABLE,
   freezeCellModel,
+  globToRegExp,
   isFrozen,
   moveDisplacesFrozenCell,
+  pathMatchesAny,
   thawCellModel
 } from '../freeze';
 
@@ -102,5 +104,84 @@ describe('moveDisplacesFrozenCell', () => {
 
   it('allows any move when no cell is frozen', () => {
     expect(moveDisplacesFrozenCell(5, 4, 0, 1, () => false)).toBe(false);
+  });
+});
+
+describe('globToRegExp', () => {
+  const matches = (pattern: string, path: string): boolean =>
+    globToRegExp(pattern).test(path);
+
+  it('treats `*` as within-segment (does not cross `/`)', () => {
+    expect(matches('*.ipynb', 'Untitled.ipynb')).toBe(true);
+    expect(matches('*.ipynb', 'dir/Untitled.ipynb')).toBe(false);
+    expect(matches('data/*.csv', 'data/a.csv')).toBe(true);
+    expect(matches('data/*.csv', 'data/sub/a.csv')).toBe(false);
+  });
+
+  it('treats `**` as crossing `/`, including zero segments', () => {
+    expect(matches('**/*.ipynb', 'Untitled.ipynb')).toBe(true);
+    expect(matches('**/*.ipynb', 'a/b.ipynb')).toBe(true);
+    expect(matches('**/*.ipynb', 'a/b/c.ipynb')).toBe(true);
+
+    expect(matches('a/**/b', 'a/b')).toBe(true);
+    expect(matches('a/**/b', 'a/x/b')).toBe(true);
+    expect(matches('a/**/b', 'a/x/y/b')).toBe(true);
+    expect(matches('a/**/b', 'a/b/c')).toBe(false);
+    expect(matches('a/**/b', 'x/a/b')).toBe(false);
+  });
+
+  it('matches a trailing `/**` against the directory itself and descendants', () => {
+    expect(matches('a/**', 'a')).toBe(true);
+    expect(matches('a/**', 'a/x')).toBe(true);
+    expect(matches('a/**', 'a/x/y')).toBe(true);
+    expect(matches('a/**', 'b/x')).toBe(false);
+  });
+
+  it('matches everything for a bare `**`', () => {
+    expect(matches('**', 'x')).toBe(true);
+    expect(matches('**', 'a/b/c')).toBe(true);
+  });
+
+  it('treats `?` as a single non-`/` character', () => {
+    expect(matches('notebook?.ipynb', 'notebook1.ipynb')).toBe(true);
+    expect(matches('notebook?.ipynb', 'notebook12.ipynb')).toBe(false);
+    expect(matches('notebook?.ipynb', 'notebook/.ipynb')).toBe(false);
+  });
+
+  it('escapes regex metacharacters so they match literally', () => {
+    expect(matches('report.ipynb', 'report.ipynb')).toBe(true);
+    expect(matches('report.ipynb', 'reportXipynb')).toBe(false);
+    expect(matches('a+b/c.ipynb', 'a+b/c.ipynb')).toBe(true);
+    expect(matches('a+b/c.ipynb', 'aaab/c.ipynb')).toBe(false);
+    expect(matches('(x)[y].ipynb', '(x)[y].ipynb')).toBe(true);
+  });
+
+  it('anchors the whole path', () => {
+    expect(matches('*.ipynb', 'x.ipynb.bak')).toBe(false);
+    expect(matches('data/*', 'xdata/y')).toBe(false);
+  });
+
+  it('is case-sensitive', () => {
+    expect(matches('*.IPYNB', 'x.ipynb')).toBe(false);
+    expect(matches('*.ipynb', 'x.ipynb')).toBe(true);
+  });
+});
+
+describe('pathMatchesAny', () => {
+  it('returns false for an empty pattern list', () => {
+    expect(pathMatchesAny('a/b.ipynb', [])).toBe(false);
+  });
+
+  it('matches when any single pattern matches (OR semantics)', () => {
+    const patterns = ['a/**', 'b/**'];
+    expect(pathMatchesAny('a/x', patterns)).toBe(true);
+    expect(pathMatchesAny('b/y', patterns)).toBe(true);
+    expect(pathMatchesAny('c/z', patterns)).toBe(false);
+  });
+
+  it('matches when a later pattern matches after an earlier miss', () => {
+    expect(
+      pathMatchesAny('reports/q1.ipynb', ['drafts/**', 'reports/*.ipynb'])
+    ).toBe(true);
   });
 });

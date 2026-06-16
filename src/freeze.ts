@@ -61,3 +61,81 @@ export function moveDisplacesFrozenCell(
   }
   return false;
 }
+
+/** Regex metacharacters escaped to literals when translating a glob. `*` and
+ * `?` are handled by the glob translation itself, so they are absent here; `/`
+ * is not special in a `RegExp` and is left as-is. */
+const REGEX_METACHARS = new Set([
+  '.',
+  '+',
+  '^',
+  '$',
+  '{',
+  '}',
+  '(',
+  ')',
+  '|',
+  '[',
+  ']',
+  '\\'
+]);
+
+/**
+ * Translate a glob pattern into an anchored, case-sensitive `RegExp` for
+ * matching `/`-separated paths with no leading slash (the shape of a notebook's
+ * `context.path`).
+ *
+ * Supported syntax:
+ *  - a single star matches any run of characters except `/` (stays within one
+ *    path segment).
+ *  - a question mark matches a single character except `/`.
+ *  - a globstar (two adjacent stars) crosses `/` boundaries. Its slash-bearing
+ *    forms are recognised as whole tokens (see the `startsWith` cases below) so
+ *    the slash can be made optional and the globstar can collapse to zero
+ *    segments. A globstar bounded by slashes matches both "a/b" and "a/x/y/b"; a
+ *    trailing globstar matches the directory itself ("a") and its descendants
+ *    ("a/x"); a leading globstar matches with zero or more leading segments
+ *    ("x" or "a/b/x"). Any other globstar becomes a cross-segment wildcard.
+ *  - every other character is matched literally (regex metacharacters escaped).
+ */
+export function globToRegExp(pattern: string): RegExp {
+  const n = pattern.length;
+  let source = '^';
+  let i = 0;
+  while (i < n) {
+    if (pattern.startsWith('/**/', i)) {
+      source += '/(?:.*/)?';
+      i += 4;
+    } else if (pattern.startsWith('/**', i) && i + 3 === n) {
+      source += '(?:/.*)?';
+      i += 3;
+    } else if (pattern.startsWith('**/', i)) {
+      source += '(?:.*/)?';
+      i += 3;
+    } else if (pattern.startsWith('**', i)) {
+      source += '.*';
+      i += 2;
+    } else {
+      const c = pattern[i];
+      if (c === '*') {
+        source += '[^/]*';
+      } else if (c === '?') {
+        source += '[^/]';
+      } else {
+        source += REGEX_METACHARS.has(c) ? `\\${c}` : c;
+      }
+      i += 1;
+    }
+  }
+  source += '$';
+  return new RegExp(source);
+}
+
+/**
+ * Whether `path` matches at least one of the glob `patterns`. An empty list
+ * matches nothing; callers that treat "no patterns" as "everything" must handle
+ * that case themselves.
+ */
+export function pathMatchesAny(path: string, patterns: string[]): boolean {
+  return patterns.some(pattern => globToRegExp(pattern).test(path));
+}

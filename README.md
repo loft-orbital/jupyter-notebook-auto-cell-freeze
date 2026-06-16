@@ -22,6 +22,54 @@ have already run.
   and you can't move another cell across one (which would shift its position).
   Editable cells that don't cross a frozen cell still reorder freely.
 
+## Configuration
+
+The extension exposes two settings in the JupyterLab **Settings Editor**
+(_Settings → Settings Editor → Auto Cell Freeze_):
+
+- **Enabled** (`enabled`, default `true`) — master switch. Turn the extension on
+  or off.
+- **Paths** (`paths`, default `[]`) — a list of glob patterns scoping which
+  notebooks the extension acts on, matched against each notebook's
+  server-relative path. An empty list (the default) means **every** notebook;
+  otherwise the extension is active only on notebooks whose path matches one of
+  the patterns. `Enabled` still applies on top — when off, nothing happens
+  anywhere regardless of `paths`.
+
+  Pattern syntax (case-sensitive, anchored to the full path):
+  - `*` matches within a single path segment (does not cross `/`).
+  - `**` matches across `/`, including zero segments — so `a/**/b` matches both
+    `a/b` and `a/x/y/b`.
+  - `?` matches a single non-`/` character.
+
+  Examples: `**/*.ipynb` (every notebook), `experiments/**` (everything under
+  `experiments/`), `reports/*.ipynb` (notebooks directly in `reports/`).
+
+When the extension is inactive for a notebook (disabled, or its path is not
+matched), executed cells are no longer frozen, frozen cells are not dimmed or
+pinned, and pasted cells are left untouched. Setting changes take effect
+immediately, without reloading. Cells already frozen in a saved notebook stay
+read-only, because that is stored in their own `editable` metadata.
+
+To configure this for everyone (e.g. in a shared deployment), ship the override
+in the system settings overrides file
+(`{sys.prefix}/share/jupyter/lab/settings/overrides.json`). For example, disable
+it entirely:
+
+```json
+{
+  "jupyter-notebook-auto-cell-freeze:plugin": { "enabled": false }
+}
+```
+
+…or enable it only for notebooks under a `graded/` folder:
+
+```json
+{
+  "jupyter-notebook-auto-cell-freeze:plugin": { "paths": ["graded/**"] }
+}
+```
+
 ## How it works
 
 The plugin (`src/index.ts`) wires up four things:

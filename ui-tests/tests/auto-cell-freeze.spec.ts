@@ -1,4 +1,4 @@
-import { expect, test } from '@jupyterlab/galata';
+import { expect, galata, test } from '@jupyterlab/galata';
 import type { Page } from '@playwright/test';
 
 /**
@@ -116,5 +116,89 @@ test.describe('auto cell freeze', () => {
     // Reordering editable cells that don't cross the frozen cell still works.
     await attemptMove(page, 2, 1, 1);
     expect(await getCellSources(page)).toEqual(['# a', '# c', '# b']);
+  });
+});
+
+test.describe('auto cell freeze disabled via settings', () => {
+  // Start JupyterLab with the extension turned off through its setting.
+  test.use({
+    mockSettings: {
+      ...galata.DEFAULT_SETTINGS,
+      'jupyter-notebook-auto-cell-freeze:plugin': { enabled: false }
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await page.notebook.createNew();
+  });
+
+  test('does nothing when disabled', async ({ page }) => {
+    await page.notebook.setCell(0, 'code', '# a');
+    await page.notebook.runCell(0);
+
+    // Executing a cell leaves it editable and undimmed.
+    expect(await getCellEditable(page, 0)).not.toBe(false);
+    expect(await isCellDimmed(page, 0)).toBe(false);
+
+    // Reordering is not blocked either.
+    await page.notebook.addCell('code', '# b');
+    expect(await getCellSources(page)).toEqual(['# a', '# b']);
+    await attemptMove(page, 1, 0, 1);
+    expect(await getCellSources(page)).toEqual(['# b', '# a']);
+  });
+});
+
+test.describe('auto cell freeze with a matching path', () => {
+  // `**/*.ipynb` matches the root-level `Untitled.ipynb` (zero leading
+  // segments), so the extension behaves exactly as with no `paths` setting.
+  test.use({
+    mockSettings: {
+      ...galata.DEFAULT_SETTINGS,
+      'jupyter-notebook-auto-cell-freeze:plugin': { paths: ['**/*.ipynb'] }
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await page.notebook.createNew();
+  });
+
+  test('freezes a cell when the notebook path matches', async ({ page }) => {
+    await page.notebook.setCell(0, 'code', '1 + 1');
+    await page.notebook.runCell(0);
+
+    expect(await getCellEditable(page, 0)).toBe(false);
+    expect(await isCellDimmed(page, 0)).toBe(true);
+  });
+});
+
+test.describe('auto cell freeze with a non-matching path', () => {
+  // `nomatch/**` cannot match the root-level `Untitled.ipynb`, so the extension
+  // is fully inert for it.
+  test.use({
+    mockSettings: {
+      ...galata.DEFAULT_SETTINGS,
+      'jupyter-notebook-auto-cell-freeze:plugin': { paths: ['nomatch/**'] }
+    }
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await page.notebook.createNew();
+  });
+
+  test('does nothing when the notebook path does not match', async ({
+    page
+  }) => {
+    await page.notebook.setCell(0, 'code', '# a');
+    await page.notebook.runCell(0);
+
+    // Not frozen and not dimmed.
+    expect(await getCellEditable(page, 0)).not.toBe(false);
+    expect(await isCellDimmed(page, 0)).toBe(false);
+
+    // Reordering is not blocked.
+    await page.notebook.addCell('code', '# b');
+    expect(await getCellSources(page)).toEqual(['# a', '# b']);
+    await attemptMove(page, 1, 0, 1);
+    expect(await getCellSources(page)).toEqual(['# b', '# a']);
   });
 });

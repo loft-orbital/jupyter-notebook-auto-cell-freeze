@@ -1,0 +1,24 @@
+{
+  "title": "Auto Cell Freeze",
+  "description": "Automatically make notebook cells read-only after they are executed.",
+  "jupyter.lab.setting-icon-label": "Auto Cell Freeze",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "title": "Enabled",
+      "description": "Turn the extension on or off. When off, executed cells are no longer frozen, frozen cells are not dimmed or pinned, and pasted cells are left untouched. Cells already frozen in a saved notebook stay read-only, because that is stored in their own metadata.",
+      "default": true
+    },
+    "paths": {
+      "type": "array",
+      "title": "Paths",
+      "description": "Glob patterns (server-relative, '/'-separated, no leading slash) selecting which notebooks the extension acts on. An empty list (the default) means every notebook. Supports '*' (matches within a path segment), '**' (matches across '/', including zero segments so 'a/**/b' matches 'a/b'), and '?' (a single non-'/' character). Matching is case-sensitive and anchored to the full path. The 'Enabled' switch still applies on top: when off, the extension is inactive everywhere regardless of this list.",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}
