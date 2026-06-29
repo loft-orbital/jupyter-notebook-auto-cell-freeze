@@ -1,6 +1,6 @@
 {
     "name": "jupyter-notebook-auto-cell-freeze",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Automatically make notebook cells read-only after they are executed.",
     "keywords": [
         "jupyter",
