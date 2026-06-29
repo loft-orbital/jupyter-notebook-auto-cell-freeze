@@ -54,14 +54,14 @@
         "watch:labextension": "jupyter labextension watch ."
     },
     "dependencies": {
-        "@jupyterlab/application": "^4.5.8",
-        "@jupyterlab/cells": "^4.5.8",
-        "@jupyterlab/notebook": "^4.5.8",
-        "@jupyterlab/settingregistry": "^4.5.8"
+        "@jupyterlab/application": "^4.5.9",
+        "@jupyterlab/cells": "^4.5.9",
+        "@jupyterlab/notebook": "^4.5.9",
+        "@jupyterlab/settingregistry": "^4.5.9"
     },
     "devDependencies": {
-        "@jupyterlab/builder": "^4.5.8",
-        "@jupyterlab/testutils": "^4.5.8",
+        "@jupyterlab/builder": "^4.5.9",
+        "@jupyterlab/testutils": "^4.5.9",
         "@types/jest": "^29.2.0",
         "@types/json-schema": "^7.0.11",
         "@types/react": "^18.0.26",
@@ -85,9 +85,6 @@
         "stylelint-prettier": "^4.0.0",
         "typescript": "~5.8.0",
         "yjs": "^13.5.0"
-    },
-    "resolutions": {
-        "webpack": "~5.106.0"
     },
     "sideEffects": [
         "style/*.css",
